@@ -5,4 +5,4 @@ One row per short, oldest first. `pnpm run new-short` adds the row. Fill in tech
 | Date | Short | Concept | Technique | Live |
 |---|---|---|---|---|
 | 2026-10-12 | [instant-film-upload](../shorts/2026-10-12-instant-film-upload/SHORT.md) | A file upload where each file prints as instant film and develops as its bytes arrive | WebGL2 develop shader, WAAPI motion, typed upload queue |  |
-| 2026-10-12 | [liquid-glass-button](../shorts/2026-10-12-liquid-glass-button/SHORT.md) | A glass pill button that comes alive: it ripples, pinches into two drops, splashes and pulls itself back together | Raw WebGL2 sphere-traced SDF glass (refraction, dispersion, Fresnel exits), analytic choreography, refresh-aware quality governor |  |
+| 2026-10-12 | [liquid-glass-button](../shorts/2026-10-12-liquid-glass-button/SHORT.md) | A glass pill button that comes alive: it ripples, pinches into two drops, splashes and pulls itself back together | Raw WebGL2 sphere-traced SDF glass (refraction, dispersion, Fresnel exits), analytic choreography, refresh-aware quality governor | [liquid-glass-button-six.vercel.app](https://liquid-glass-button-six.vercel.app) |
