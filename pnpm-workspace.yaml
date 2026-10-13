@@ -1,0 +1,11 @@
+packages:
+  - shorts/*
+
+# Dependencies allowed to run install scripts. esbuild's verifies its platform binary (used by Vite).
+allowBuilds:
+  esbuild: true
+
+minimumReleaseAgeExclude:
+  - '@vitest/mocker@5.0.4'
+  - '@vitest/spy@5.0.4'
+  - vitest@5.0.4

@@ -1,0 +1,570 @@
+/* Component tokens. Zero-specificity defaults: a host page overrides any of them on :root. */
+
+:where(:root) {
+  --page: #eceef1;
+  --surface: #ffffff;
+  --surface-raised: #f6f7f9;
+  --ink: #1c2027;
+  --muted: #646b78;
+  --line: #d7dbe1;
+  --accent: #0d6b61;
+  --accent-soft: rgba(13, 107, 97, 0.14);
+  --danger: #b42318;
+  --danger-soft: rgba(180, 35, 24, 0.12);
+  --amber: #c98a12;
+  --slot: #14171c;
+  --slot-lip: rgba(255, 255, 255, 0.9);
+  --paper: #fcfcf9;
+  --pen: #233f78;
+  --pencil: #7c828d;
+  --error-pen: #b8322a;
+  --font-ui: 'Schibsted Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-hand: 'Nanum Pen Script', 'Segoe Print', 'Bradley Hand', cursive;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :where(:root) {
+    --page: #14171c;
+    --surface: #1c2027;
+    --surface-raised: #20252d;
+    --ink: #e8eaee;
+    --muted: #9ba2ae;
+    --line: #2e343e;
+    --accent: #3fb5a6;
+    --accent-soft: rgba(63, 181, 166, 0.18);
+    --danger: #f2796d;
+    --danger-soft: rgba(242, 121, 109, 0.16);
+    --slot: #07090b;
+    --slot-lip: rgba(255, 255, 255, 0.07);
+    --paper: #f1efe9;
+  }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    opacity 150ms ease,
+    transform 120ms var(--ease-out);
+}
+
+.button:active {
+  transform: scale(0.97);
+}
+
+.button--primary {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--surface);
+}
+
+.button--quiet {
+  height: 28px;
+  padding: 0 8px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .button:hover {
+    border-color: var(--muted);
+  }
+
+  .button--primary:hover {
+    opacity: 0.86;
+  }
+}
+
+/* The camera: a white body with a film slot, a ready light, and the bay the print ejects into. */
+
+.camera {
+  --print-width: 252px;
+  position: relative;
+  padding: 20px 24px 22px;
+  border-radius: 26px;
+  background: linear-gradient(180deg, var(--surface) 0%, var(--surface-raised) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    0 0 0 1px var(--line),
+    0 22px 44px -28px rgba(16, 20, 28, 0.42);
+}
+
+.camera__head {
+  position: relative;
+  height: 20px;
+}
+
+.camera__slot {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: calc(var(--print-width) + 18px);
+  height: 10px;
+  border-radius: 6px;
+  /* A real slit: darkest at the top edge, a faint far wall, and a lit lower lip. */
+  background: linear-gradient(180deg, #030405 0%, var(--slot) 55%, #262a31 100%);
+  box-shadow:
+    inset 0 2px 2px rgba(0, 0, 0, 0.75),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.07),
+    0 1px 0 var(--slot-lip),
+    0 -1px 0 rgba(16, 20, 28, 0.1);
+  transform: translateX(-50%);
+  transition: transform 200ms var(--ease-out);
+  z-index: 2;
+}
+
+/* The slot opens a little when a file is on its way. */
+.camera[data-drag='page'] .camera__slot,
+.camera[data-drag='over'] .camera__slot {
+  transform: translateX(-50%) scaleY(1.4);
+}
+
+/* The ready light sits beside the status it describes. */
+.camera__readout {
+  position: relative;
+  margin-top: 14px;
+  padding-left: 18px;
+}
+
+.camera__led {
+  position: absolute;
+  top: 6px;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #c4c9d0;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.28);
+  transition:
+    background-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.camera[data-light='ready'] .camera__led,
+.camera[data-light='done'] .camera__led {
+  background: var(--accent);
+  box-shadow:
+    0 0 0 3px var(--accent-soft),
+    0 0 10px var(--accent);
+}
+
+.camera[data-light='busy'] .camera__led {
+  background: var(--amber);
+  animation: led-breathe 1.6s ease-in-out infinite;
+}
+
+.camera[data-light='invalid'] .camera__led,
+.camera[data-light='error'] .camera__led {
+  background: var(--danger);
+  box-shadow: 0 0 0 3px var(--danger-soft);
+}
+
+@keyframes led-breathe {
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* A recessed tray, tall enough for the print and the shadow it casts below. */
+.camera__bay {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  height: calc(var(--print-width) * 107 / 88 + 30px);
+  margin-top: -9px;
+  overflow: hidden;
+  border-radius: 4px 4px 16px 16px;
+  background: color-mix(in srgb, var(--page) 75%, var(--surface));
+  box-shadow:
+    inset 0 10px 14px -12px rgba(16, 20, 28, 0.35),
+    inset 0 0 0 1px color-mix(in srgb, var(--line) 75%, transparent);
+}
+
+/* Where the next print will land: a faint outline in the tray, nothing more. */
+.camera__ghost {
+  position: relative;
+  width: var(--print-width);
+  aspect-ratio: 88 / 107;
+  border: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+  border-radius: 3px;
+  transition: border-color 200ms ease;
+}
+
+.camera[data-drag='over'] .camera__ghost {
+  border-color: var(--accent);
+}
+
+.camera[data-drag='invalid'] .camera__ghost {
+  border-color: var(--danger);
+}
+
+/* The next sheet of film is loaded: its edge shows under the slot, and it feeds out as a file approaches. */
+.camera__peek {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 34px;
+  background:
+    linear-gradient(rgba(10, 12, 16, 0.22), rgba(10, 12, 16, 0) 12px),
+    var(--paper);
+  box-shadow: 0 1px 3px rgba(16, 20, 28, 0.18);
+  transform: translateY(-60%);
+  transition: transform 260ms var(--ease-out);
+}
+
+.camera[data-drag='page'] .camera__peek {
+  transform: translateY(-34%);
+}
+
+.camera[data-drag='over'] .camera__peek {
+  transform: translateY(0);
+}
+
+.camera[data-drag='invalid'] .camera__peek {
+  transform: translateY(-82%);
+}
+
+.camera__status {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  row-gap: 2px;
+  min-height: 104px;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.camera__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.camera__detail {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.camera__status[data-tone='error'] .camera__title {
+  color: var(--danger);
+}
+
+.camera__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.camera__problems {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--line);
+  list-style: none;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.camera__problems li {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.camera__problems strong {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* The print: Polaroid 600 proportions, 88 by 107 with a square window and a deep bottom margin. */
+
+.print {
+  --w: var(--print-width);
+  position: relative;
+  width: var(--w);
+  aspect-ratio: 88 / 107;
+  padding: calc(var(--w) * 0.055) calc(var(--w) * 0.055) 0;
+  border-radius: 2px;
+  background-color: var(--paper);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  box-shadow:
+    0 0 0 0.5px rgba(16, 20, 28, 0.1),
+    0 1px 1px rgba(16, 20, 28, 0.08),
+    0 8px 18px -8px rgba(16, 20, 28, 0.34);
+}
+
+/* The slot's shadow falls across the print while it is still in the camera. */
+.print--stage::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 14px;
+  background: linear-gradient(rgba(10, 12, 16, 0.22), rgba(10, 12, 16, 0));
+  pointer-events: none;
+}
+
+.print__image {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: #1b2629;
+}
+
+.print__canvas,
+.print__image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* A faint sheen across the film, and the slight recess of the image window. */
+.print__gloss {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(118deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.03) 30%, rgba(255, 255, 255, 0) 48%);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.38),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+  pointer-events: none;
+}
+
+/* Light catching the film as it slides out of the camera. */
+.print__glint {
+  position: absolute;
+  inset: -20% -60%;
+  background: linear-gradient(105deg, rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, 0.3) 50%, rgba(255, 255, 255, 0) 60%);
+  transform: translateX(-70%);
+  pointer-events: none;
+}
+
+.print__caption {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(var(--w) * 0.271);
+  margin: 0;
+  padding: 0 6% calc(var(--w) * 0.02);
+  overflow: hidden;
+  font-family: var(--font-hand);
+  font-size: calc(var(--w) * 0.11);
+  line-height: 1;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  transform: rotate(-1.4deg);
+}
+
+.print__caption[data-tone='pencil'] {
+  color: var(--pencil);
+}
+
+.print__caption[data-tone='pen'] {
+  color: var(--pen);
+}
+
+.print__caption[data-tone='error'] {
+  color: var(--error-pen);
+}
+
+/* The name is written in, left to right, once the print has developed. */
+.print__caption[data-written] {
+  animation: write-in 760ms var(--ease-out) both;
+}
+
+@keyframes write-in {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* The gallery: developed prints filed on the product page. */
+
+.gallery__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.gallery__head h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.gallery__count {
+  color: var(--muted);
+  font-size: 13.5px;
+}
+
+.gallery__empty {
+  --print-width: 168px;
+  margin-top: 32px;
+}
+
+.gallery__empty p {
+  max-width: 44ch;
+  margin: 24px 0 0;
+  color: var(--muted);
+}
+
+/* Where prints will land: faint, slightly askew outlines on the desk. */
+.gallery__marks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--print-width), 1fr));
+  gap: 36px 28px;
+  justify-items: center;
+}
+
+.gallery__marks span {
+  width: var(--print-width);
+  aspect-ratio: 88 / 107;
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--line) 80%, transparent);
+}
+
+.gallery__marks span:nth-child(1) {
+  transform: rotate(-1.6deg);
+}
+
+.gallery__marks span:nth-child(2) {
+  transform: rotate(1.2deg);
+  opacity: 0.7;
+}
+
+.gallery__marks span:nth-child(3) {
+  transform: rotate(-0.6deg);
+  opacity: 0.45;
+}
+
+.gallery__grid {
+  --print-width: 168px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--print-width), 1fr));
+  gap: 36px 28px;
+  justify-items: center;
+  margin: 32px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gallery__item {
+  position: relative;
+}
+
+.gallery__remove {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.gallery__item:focus-within .gallery__remove {
+  opacity: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .gallery__item:hover .gallery__remove {
+    opacity: 1;
+  }
+}
+
+@media (hover: none) {
+  .gallery__remove {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 900px) {
+  .camera {
+    --print-width: min(240px, 64vw);
+    max-width: 420px;
+  }
+
+  .gallery__grid {
+    --print-width: 128px;
+    gap: 28px 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .camera__slot,
+  .camera__peek {
+    transition: none;
+  }
+
+  .camera[data-light='busy'] .camera__led {
+    animation: none;
+  }
+
+  .print__caption[data-written] {
+    animation: write-in-still 300ms ease both;
+  }
+
+  @keyframes write-in-still {
+    from {
+      opacity: 0;
+    }
+  }
+}
+
+/* A filed print shows the uploaded file itself; transparent areas sit on paper, as they do in the develop. */
+.print--small .print__image {
+  background: var(--paper);
+}
+
+.camera__problem-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 2px;
+}

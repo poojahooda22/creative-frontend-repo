@@ -1,0 +1,64 @@
+{
+  "skillOverrides": {
+    "clerk-backend-api": "off",
+    "clerk-cli": "off",
+    "clerk-custom-ui": "off",
+    "clerk-expo-patterns": "off",
+    "clerk-orgs": "off",
+    "clerk-setup": "off",
+    "clerk-testing": "off",
+    "clerk-webhooks": "off",
+    "backend-languages": "off",
+    "cloudflare-r2-cdn": "off",
+    "community-social-engine": "off",
+    "competitor-intelligence": "off",
+    "compiler-mastery": "off",
+    "compositor-debugging": "off",
+    "creator-economy-platform": "off",
+    "cto": "off",
+    "cto-3js": "off",
+    "embed-platform-integration": "off",
+    "fbo-pool-engineering": "off",
+    "frontend-frameworks": "off",
+    "gpu-qa": "off",
+    "incremental-dag-computation": "off",
+    "infra-devops": "off",
+    "knowledge-base": "off",
+    "live-editor-architecture": "off",
+    "marketplace-commerce": "off",
+    "nextjs-backend": "off",
+    "node-graph-architecture": "off",
+    "og-node-architecture": "off",
+    "page-builder-export": "off",
+    "qa": "off",
+    "react-flow-mastery": "off",
+    "real-time-collaboration": "off",
+    "roslyn-red-green-architecture": "off",
+    "scene-code-export": "off",
+    "scene-data-persistence": "off",
+    "sdk-bundle-engineering": "off",
+    "sdk-publish-pipeline": "off",
+    "sdk-runtime-architecture": "off",
+    "sdk-testing-strategy": "off",
+    "supabase-integration": "off",
+    "tanstack-query": "off",
+    "uber-shader-bundle-pipeline": "off",
+    "wasm-math-module-architecture": "off",
+    "wasm-shader-optimization": "off",
+    "webworker-compiler-architecture": "off"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/short-craft-start.mjs\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

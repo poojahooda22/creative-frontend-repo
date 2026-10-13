@@ -1,0 +1,13 @@
+node_modules
+dist
+*.local
+*.log
+.DS_Store
+.playwright-cli/
+
+# Claude Code: personal settings and hook session cache
+.claude/settings.local.json
+.claude/.cache/
+
+# Vercel CLI link state (project and org ids)
+.vercel

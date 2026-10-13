@@ -1,0 +1,8 @@
+{
+  "name": "creative-frontend-repo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "new-short": "node scripts/new-short.mjs"
+  }
+}
