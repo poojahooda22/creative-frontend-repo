@@ -1,0 +1,547 @@
+:root {
+  /* The page colour the shader draws, so nothing flashes before the first frame. */
+  --page: #161412;
+  --ink: #ece8e1;
+  --muted: #9b958b;
+  --line: rgb(236 232 225 / 0.14);
+  /* Text on the light buttons, and the water's teal, which lights them from below. */
+  --on-ink: #171512;
+  --water: 127 200 192;
+  --ring: #ece8e1;
+  /* Fast out, gentle settle: buttons answer at once and come to rest softly. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  font-family: 'Geist Variable', 'Geist', ui-sans-serif, system-ui, sans-serif;
+  color-scheme: dark;
+}
+
+/* The tank scales with the view's height; so does the type on large screens, so a 4K or 5K
+   display does not show desktop-sized text over a wall-sized tank. Never below the visitor's own
+   default size (16 px unless they changed it); it starts growing past about 1080 px tall. */
+html {
+  font-size: clamp(100%, 1.48vh, 200%);
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--page);
+  color: var(--ink);
+}
+
+.page {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.stage {
+  position: absolute;
+  inset: 0;
+}
+
+.stage canvas {
+  display: block;
+}
+
+/* Everything over the canvas lets the pointer through to the water, except links and buttons. */
+.nav,
+.hero,
+.hint,
+.stats,
+.still-404 {
+  pointer-events: none;
+}
+
+.nav a,
+.hero a {
+  pointer-events: auto;
+}
+
+/* ---- The product's own site header, as on any of its pages ---- */
+.nav {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4.5rem;
+  padding: 0 clamp(16px, 3vw, 2.5rem);
+  display: flex;
+  align-items: center;
+  gap: clamp(1.25rem, 3.5vw, 3rem);
+}
+
+/* No colour here: a rule on .nav a would outrank each button's own colour. */
+.nav a {
+  text-decoration: none;
+}
+
+.brand {
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  border-radius: 6px;
+}
+
+.brand-mark {
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 0.375rem;
+  background: linear-gradient(160deg, #7fc8c0, #2f6f6c);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35);
+}
+
+.links {
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 2vw, 1.75rem);
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+.links a {
+  color: inherit;
+  border-radius: 6px;
+  transition: color 160ms var(--ease-out);
+}
+
+.account {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.brand:focus-visible,
+.links a:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 4px;
+}
+
+/* ---- Buttons: one system for the header and the 404 ---- */
+.button {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  /* 40 px for a mouse; a touch screen gets more below. */
+  height: 2.5rem;
+  padding: 0 1rem;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 550;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 180ms var(--ease-out),
+    background-color 180ms var(--ease-out),
+    box-shadow 180ms var(--ease-out),
+    color 180ms var(--ease-out);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+
+/* A press sinks the button a little and answers faster than the hover rises. */
+.button:active {
+  transform: scale(0.97);
+  transition-duration: 80ms;
+}
+
+.button--quiet {
+  color: var(--muted);
+  background: transparent;
+}
+
+.button--solid {
+  color: var(--on-ink);
+  background: linear-gradient(180deg, #f7f4ef, #e3ded6);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    inset 0 -1px 0 rgb(0 0 0 / 0.14),
+    0 1px 2px rgb(0 0 0 / 0.5),
+    0 8px 24px -12px rgb(var(--water) / 0.6);
+}
+
+/* A pane of the same glass as the water's surface: a hairline edge and a little blur. */
+.button--glass {
+  color: var(--ink);
+  background: rgb(236 232 225 / 0.06);
+  box-shadow:
+    inset 0 0 0 1px rgb(236 232 225 / 0.16),
+    inset 0 1px 0 rgb(255 255 255 / 0.06);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.button--large {
+  height: 2.875rem;
+  padding: 0 1.3125rem;
+  font-size: 1rem;
+}
+
+/* A finger, not a cursor: Apple's 44 pt for the header, Material's 48 dp for the ways back. On
+   phones the best product pages measured at 390 px wide ship primary buttons 44 to 48 px tall
+   (Figma 46, Webflow 46, Arc 45, Stripe 44). */
+@media (pointer: coarse) {
+  .button {
+    height: 2.75rem;
+    padding: 0 1.0625rem;
+  }
+
+  .button--large {
+    height: 3rem;
+    padding: 0 1.375rem;
+    font-size: 1rem;
+  }
+}
+
+.arrow {
+  flex: none;
+  width: 0.75rem;
+  height: 0.75rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 220ms var(--ease-out);
+}
+
+/* Hover only where there is a pointer that hovers: on a phone a tap would leave it stuck on. */
+@media (hover: hover) and (pointer: fine) {
+  .links a:hover {
+    color: var(--ink);
+  }
+
+  .button--quiet:hover {
+    color: var(--ink);
+    background: rgb(236 232 225 / 0.08);
+  }
+
+  .button--solid:hover {
+    background: linear-gradient(180deg, #ffffff, #ece8e1);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 1),
+      inset 0 -1px 0 rgb(0 0 0 / 0.12),
+      0 1px 2px rgb(0 0 0 / 0.5),
+      0 12px 30px -12px rgb(var(--water) / 0.85);
+    transform: translateY(-1px);
+  }
+
+  .button--solid:active {
+    transform: translateY(0) scale(0.97);
+  }
+
+  .button--glass:hover {
+    background: rgb(236 232 225 / 0.1);
+    box-shadow:
+      inset 0 0 0 1px rgb(236 232 225 / 0.3),
+      inset 0 1px 0 rgb(255 255 255 / 0.08);
+  }
+
+  .button:hover .arrow {
+    transform: translateX(2px);
+  }
+
+  .button:hover .arrow--back {
+    transform: translateX(-2px);
+  }
+}
+
+/* ---- The 404: what happened, and the way back ---- */
+.hero {
+  position: absolute;
+  left: 50%;
+  top: clamp(5.75rem, 14vh, 9rem);
+  transform: translateX(-50%);
+  width: min(92vw, 45rem);
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  transition: opacity 0.45s ease;
+}
+
+/* A digit lifted out of the water rises into the headline: the headline steps back. */
+.hero[data-dim] {
+  opacity: 0.2;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: clamp(2.25rem, 5.2vw, 4.25rem);
+  font-weight: 560;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.lede {
+  margin: 1rem 0 0;
+  max-width: 34ch;
+  font-size: clamp(1rem, 1.5vw, 1.25rem);
+  line-height: 1.45;
+  color: var(--muted);
+  text-wrap: balance;
+}
+
+.actions {
+  margin-top: 1.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+/* ---- The water's invitation, at the foot of the page where the crabs walk ---- */
+.hint {
+  position: absolute;
+  left: clamp(16px, 3vw, 2.5rem);
+  bottom: max(2.4dvh, 14px);
+  margin: 0;
+  padding: 0.5rem 0.875rem;
+  border-radius: 999px;
+  background: rgb(22 20 18 / 0.62);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: rgb(236 232 225 / 0.78);
+}
+
+.hint-sep {
+  margin: 0 0.25rem;
+  opacity: 0.5;
+}
+
+/* iOS asks before a page may read the phone's tilt: this chip asks, opposite the invitation and
+   the same height, with a touch target grown to 44 px around it. */
+.tilt {
+  position: absolute;
+  right: clamp(16px, 3vw, 2.5rem);
+  bottom: max(2.4dvh, 14px);
+  margin: 0;
+  padding: 0.4375rem 0.875rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgb(22 20 18 / 0.62);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 550;
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+.tilt::after {
+  content: '';
+  position: absolute;
+  inset: -7px -4px;
+}
+
+.tilt:active {
+  transform: scale(0.97);
+}
+
+.tilt:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .button--glass,
+  .hint,
+  .tilt {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgb(22 20 18 / 0.92);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .arrow,
+  .tilt {
+    transition: none;
+  }
+}
+
+.stats {
+  position: absolute;
+  top: 80px;
+  left: 16px;
+  font: 500 12px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: var(--muted);
+}
+
+/* Without WebGL2: the page and a quiet 404, no tank. */
+.still-404 {
+  position: absolute;
+  left: 50%;
+  bottom: 18dvh;
+  transform: translateX(-50%);
+  margin: 0;
+  font-size: clamp(96px, 22vw, 260px);
+  font-weight: 560;
+  letter-spacing: -0.04em;
+  color: rgb(126 200 192 / 0.35);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* The section links give way first. */
+@media (max-width: 760px) {
+  .links {
+    display: none;
+  }
+}
+
+/* ---- Phones, upright or on their side: one way back, and Log in alone in the header ----
+   One prominent button per view, as Apple's guidelines ask on a small screen. Sizes come from the
+   platforms' own specs: Apple's iOS text styles (Large Title 34/41, Title 1 28/34, Headline and
+   Body 17/22, Subhead 15/20, Footnote 13/18) and hit region (at least 44 pt; capsule buttons 44
+   Regular, 52 Large); Material 3's button tokens (40 dp default with 16 dp sides, 56 dp medium
+   with 24 dp sides) and its 48 dp minimum touch target. */
+@media (max-width: 640px), (orientation: landscape) and (max-height: 520px) {
+  .links,
+  .account .button--solid,
+  .actions .button--glass {
+    display: none;
+  }
+
+  /* Log in, alone, reads as a button: a glass capsule at Apple's 44 pt, Callout-sized label. */
+  .account .button--quiet {
+    height: 2.75rem;
+    padding: 0 1rem;
+    font-size: 1rem;
+    color: var(--ink);
+    background: rgb(236 232 225 / 0.06);
+    box-shadow:
+      inset 0 0 0 1px rgb(236 232 225 / 0.16),
+      inset 0 1px 0 rgb(255 255 255 / 0.06);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
+
+  .actions {
+    margin-top: 1.75rem;
+  }
+
+  /* The one way back, centred: Apple's Large capsule (52 pt), Material's medium side padding
+     (24 dp), a Headline-sized label (17, semibold), about two thirds of a 390 px phone wide. */
+  .actions .button--solid {
+    height: 3.25rem;
+    min-width: 15rem;
+    padding: 0 1.5rem;
+    font-size: 1.0625rem;
+    font-weight: 600;
+  }
+
+  .actions .button--solid .arrow {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+}
+
+/* Phones held upright: Large Title (34, held to one line), Body (17) under it. */
+@media (max-width: 640px) {
+  .hero h1 {
+    font-size: min(2.125rem, 9.2vw);
+    line-height: 1.12;
+    letter-spacing: -0.03em;
+  }
+
+  .lede {
+    margin-top: 0.75rem;
+    max-width: 30ch;
+    font-size: 1.0625rem;
+    line-height: 1.45;
+  }
+}
+
+/* Short phones held upright (an iPhone SE): the water rises to mid-screen, so the 404 steps down
+   to Title 1 (28) and Subhead (15), and the way back to Material's 48 dp. */
+@media (orientation: portrait) and (max-height: 700px) {
+  .hero {
+    top: 4.75rem;
+  }
+
+  .hero h1 {
+    font-size: 1.75rem;
+  }
+
+  .lede {
+    margin-top: 0.625rem;
+    font-size: 0.9375rem;
+    line-height: 1.4;
+  }
+
+  .actions {
+    margin-top: 1.125rem;
+  }
+
+  .actions .button--solid {
+    height: 3rem;
+    font-size: 1rem;
+  }
+}
+
+/* A phone on its side (or any short window): the tank keeps its share of the height, so the
+   headline tightens and the way back sits right under it, at Apple's 44 pt. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .nav {
+    height: 3.5rem;
+  }
+
+  .hero {
+    top: 3.75rem;
+  }
+
+  .hero h1 {
+    font-size: clamp(1.625rem, 8.5vh, 2.5rem);
+  }
+
+  .lede {
+    margin-top: 0.375rem;
+    max-width: none;
+    font-size: 0.9375rem;
+  }
+
+  .actions {
+    margin-top: 0.75rem;
+  }
+
+  .actions .button--solid {
+    height: 2.75rem;
+    padding: 0 1.25rem;
+    font-size: 1rem;
+  }
+}
