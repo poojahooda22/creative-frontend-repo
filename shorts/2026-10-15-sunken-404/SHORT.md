@@ -44,7 +44,7 @@
   - Khronos for the PBR Neutral highlight compression.
   - The mulberry32 generator, commonly attributed to Tommy Ettinger (authorship not verified).
   - Type set in Geist (Vercel, SIL Open Font License).
-- **Live:**
+- **Live:** [sunken-404.vercel.app](https://sunken-404.vercel.app). Any missing path on it (/docs/old-page) is served this page with a 404 status.
 
 ## Teardown of the reference
 
