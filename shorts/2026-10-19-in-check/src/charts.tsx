@@ -34,9 +34,10 @@ export function Bars({ days, bar, today }: ChartProps) {
           const entry = days[key]
           const hours = entry?.hours ?? 0
           const dsa = entry?.dsa ?? 0
+          const counted = counts(entry, bar) ? ' bars__track--counted' : ''
           return (
-            <div key={key} className={key === today ? 'bars__track bars__track--today' : 'bars__track'} title={describe(key, entry, bar)}>
-              {hours > 0 && <div className={counts(entry, bar) ? 'bars__hours bars__hours--counted' : 'bars__hours'} style={{ height: share(hours) }} />}
+            <div key={key} className={`bars__track${counted}${key === today ? ' bars__track--today' : ''}`} title={describe(key, entry, bar)}>
+              {hours > 0 && <div className="bars__hours" style={{ height: share(hours) }} />}
               {dsa > 0 && <div className="bars__dsa" style={{ height: share(dsa) }} />}
             </div>
           )

@@ -89,14 +89,14 @@ export function counts(entry: DayEntry | undefined, bar: number): boolean {
   return entry !== undefined && entry.gym && entry.hours >= bar
 }
 
-/** How full a day was, 0 (nothing) to 5 (the bar, with the gym), for the year grid. */
+/** How full a day was, 0 (nothing) to 4 (the bar, with the gym): the four levels GitHub's year grid uses. */
 export function level(entry: DayEntry | undefined, bar: number): number {
-  if (!entry || entry.hours <= 0) return entry?.gym ? 1 : 0
-  if (counts(entry, bar)) return 5
+  if (!entry) return 0
+  if (counts(entry, bar)) return 4
+  if (entry.hours <= 0) return entry.gym ? 1 : 0
   const share = entry.hours / bar
-  if (share >= 0.75) return 4
-  if (share >= 0.5) return 3
-  if (share >= 0.25) return 2
+  if (share >= 0.75) return 3
+  if (share >= 0.4) return 2
   return 1
 }
 
@@ -165,6 +165,8 @@ export function summary(days: Record<string, DayEntry>, bar: number, today: stri
 export interface Verdict {
   headline: string
   lines: string[]
+  /** The day counts. */
+  ok: boolean
 }
 
 export function formatHours(hours: number): string {
@@ -195,7 +197,7 @@ export function verdict(today: DayEntry, yesterday: DayEntry | undefined, bar: n
   if (today.hours > 0) lines.push(`DSA is ${Math.round((100 * today.dsa) / today.hours)}% of the day.`)
   const nothing = today.hours === 0 && !today.gym && today.problems === 0
   const headline = missing.length === 0 ? 'On the bar.' : nothing ? 'Nothing logged yet.' : 'Behind.'
-  return { headline, lines }
+  return { headline, lines, ok: missing.length === 0 }
 }
 
 function plural(n: number, word: string): string {

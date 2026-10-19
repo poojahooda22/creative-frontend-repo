@@ -26,12 +26,23 @@
   --accent: var(--ink-9);
   --on-accent: var(--ink-0);
   --ring: var(--ink-8);
+  /* The one meaning colour, green for done, from GitHub's design system (Primer), read off
+     github.com on 2026-10-19: the contribution graph's four levels, and its success tokens. */
+  --green-1: #033a16;
+  --green-2: #196c2e;
+  --green-3: #2ea043;
+  --green-4: #56d364;
+  --done: #3fb950;
+  --done-emphasis: #238636;
+  --done-muted: rgb(46 160 67 / 0.15);
+  --on-done: #ffffff;
   --heat-0: var(--ink-2);
-  --heat-1: var(--ink-4);
-  --heat-2: var(--ink-5);
-  --heat-3: var(--ink-6);
-  --heat-4: var(--ink-7);
-  --heat-5: var(--ink-9);
+  --heat-1: var(--green-1);
+  --heat-2: var(--green-2);
+  --heat-3: var(--green-3);
+  --heat-4: var(--green-4);
+  --col-hours: var(--ink-6);
+  --col-dsa: var(--ink-9);
   --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -16px rgb(0 0 0 / 0.6);
 
   --font: 'Geist Variable', 'Geist', ui-sans-serif, system-ui, sans-serif;
@@ -56,12 +67,17 @@
     --accent: #1b2a4d;
     --on-accent: #f1f4fb;
     --ring: #1b2a4d;
+    --green-1: #aceebb;
+    --green-2: #4ac26b;
+    --green-3: #2da44e;
+    --green-4: #116329;
+    --done: #1a7f37;
+    --done-emphasis: #1f883d;
+    --done-muted: #dafbe1;
+    --on-done: #ffffff;
     --heat-0: #e3e8f2;
-    --heat-1: #c2cde3;
-    --heat-2: #99abd0;
-    --heat-3: #6b85bb;
-    --heat-4: #3f5a95;
-    --heat-5: #1b2a4d;
+    --col-hours: #6b85bb;
+    --col-dsa: #1b2a4d;
     --shadow: 0 1px 2px rgb(27 42 77 / 0.08), 0 8px 24px -16px rgb(27 42 77 / 0.25);
   }
 }
@@ -123,27 +139,55 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* The streak, one line: the flame, the count, its label, the best. The flame is lit while the
+   streak is alive. */
 .streak {
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
   gap: 8px;
+  min-height: 40px;
+  padding: 0 14px 0 10px;
+  border-radius: 999px;
+  background: var(--raised);
+  box-shadow: inset 0 0 0 1px var(--line);
+  white-space: nowrap;
+}
+
+.flame {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+  color: var(--faint);
+}
+
+.flame__core {
+  fill: var(--raised);
+}
+
+.streak--alive .flame {
+  color: var(--done);
 }
 
 .streak__count {
-  font: 600 32px/1 var(--mono);
+  font: 600 22px/1 var(--mono);
   letter-spacing: -0.02em;
   color: var(--fg-strong);
   font-variant-numeric: tabular-nums;
 }
 
+.streak--alive .streak__count {
+  color: var(--done);
+}
+
 .streak__label {
-  display: grid;
-  font-size: 13px;
-  line-height: 1.2;
+  font-size: 14px;
   color: var(--muted);
 }
 
 .streak__best {
+  padding-left: 10px;
+  border-left: 1px solid var(--line);
+  font-size: 13px;
   color: var(--faint);
   font-variant-numeric: tabular-nums;
 }
@@ -206,6 +250,10 @@ body {
   font-size: 15px;
   letter-spacing: 0;
   color: var(--fg);
+}
+
+.card__title--done {
+  color: var(--done);
 }
 
 .card__sub {
@@ -304,8 +352,9 @@ body {
 }
 
 .btn--status-shipped {
-  background: var(--accent);
-  color: var(--on-accent);
+  background: var(--done-emphasis);
+  color: var(--on-done);
+  box-shadow: none;
 }
 
 :is(.btn, .toggle, .stepper__input, .systems__name, .note):focus-visible {
@@ -327,8 +376,18 @@ body {
   }
 
   .btn--status-shipped:not(:disabled):hover {
-    background: var(--fg-strong);
-    color: var(--on-accent);
+    background: var(--done);
+    color: var(--on-done);
+    box-shadow: none;
+  }
+
+  .toggle:hover {
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+  }
+
+  .toggle[aria-checked='true']:hover {
+    background: var(--done);
+    box-shadow: none;
   }
 }
 
@@ -398,13 +457,13 @@ body {
 }
 
 .toggle[aria-checked='true'] {
-  background: var(--accent);
-  color: var(--on-accent);
+  background: var(--done-emphasis);
+  color: var(--on-done);
+  box-shadow: none;
 }
 
 .toggle[aria-checked='true'] .toggle__knob {
-  background: var(--on-accent);
-  box-shadow: inset 0 0 0 10px var(--on-accent), inset 0 0 0 11px var(--accent);
+  background: var(--on-done);
 }
 
 .stepper {
@@ -502,11 +561,11 @@ body {
 }
 
 .bar-meter__fill {
-  background: var(--heat-3);
+  background: var(--green-2);
 }
 
 .bar-meter__dsa {
-  background: var(--heat-5);
+  background: var(--green-4);
 }
 
 .bar-meter__bar {
@@ -516,6 +575,10 @@ body {
   width: 2px;
   margin-left: -1px;
   background: var(--fg-strong);
+}
+
+.bar-meter--reached .bar-meter__bar {
+  background: var(--on-done);
 }
 
 /* ---- Verdict ---- */
@@ -606,11 +669,15 @@ body {
 }
 
 .legend__swatch--hours {
-  background: var(--heat-3);
+  background: var(--col-hours);
 }
 
 .legend__swatch--dsa {
-  background: var(--heat-5);
+  background: var(--col-dsa);
+}
+
+.legend__swatch--counted {
+  background: var(--green-3);
 }
 
 .legend__dot {
@@ -663,15 +730,20 @@ body {
 }
 
 .bars__hours {
-  background: var(--heat-3);
-}
-
-.bars__hours--counted {
-  background: var(--heat-4);
+  background: var(--col-hours);
 }
 
 .bars__dsa {
-  background: var(--heat-5);
+  background: var(--col-dsa);
+}
+
+/* A day that counted is green, DSA the brighter green inside it. */
+.bars__track--counted .bars__hours {
+  background: var(--green-2);
+}
+
+.bars__track--counted .bars__dsa {
+  background: var(--green-4);
 }
 
 .bars__line {
@@ -754,12 +826,6 @@ body {
 .legend__cell.heatmap__cell--4 {
   fill: var(--heat-4);
   background: var(--heat-4);
-}
-
-.heatmap__cell--5,
-.legend__cell.heatmap__cell--5 {
-  fill: var(--heat-5);
-  background: var(--heat-5);
 }
 
 .heatmap__cell--today {

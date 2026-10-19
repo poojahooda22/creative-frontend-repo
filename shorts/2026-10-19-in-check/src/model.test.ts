@@ -24,12 +24,13 @@ describe('days', () => {
     expect(counts(undefined, 22)).toBe(false)
   })
 
-  it('grades a day from nothing to the bar', () => {
+  it('grades a day from nothing to the bar, in four levels', () => {
     expect(level(undefined, 22)).toBe(0)
+    expect(level(day({ gym: true }), 22)).toBe(1)
     expect(level(day({ hours: 2 }), 22)).toBe(1)
-    expect(level(day({ hours: 11 }), 22)).toBe(3)
-    expect(level(day({ hours: 22 }), 22)).toBe(4)
-    expect(level(full, 22)).toBe(5)
+    expect(level(day({ hours: 11 }), 22)).toBe(2)
+    expect(level(day({ hours: 22 }), 22)).toBe(3)
+    expect(level(full, 22)).toBe(4)
   })
 })
 
@@ -70,12 +71,14 @@ describe('verdict', () => {
   it('says behind, and by how much', () => {
     const v = verdict(day({ hours: 4, dsa: 3, problems: 5 }), full, 22)
     expect(v.headline).toBe('Behind.')
+    expect(v.ok).toBe(false)
     expect(v.lines).toEqual(['Yesterday: 22 h, 10 h of it DSA, 8 problems, gym done.', 'Today: 4 h, 18 h under the bar, gym not done.', '3 problems fewer than yesterday.', 'DSA is 75% of the day.'])
   })
 
   it('says on the bar when the day counts', () => {
     const v = verdict(day({ gym: true, hours: 22.5, dsa: 12, problems: 9 }), full, 22)
     expect(v.headline).toBe('On the bar.')
+    expect(v.ok).toBe(true)
     expect(v.lines[1]).toBe('Today: 22.5 h, at the bar, gym done.')
     expect(v.lines[2]).toBe('1 problem more than yesterday.')
   })

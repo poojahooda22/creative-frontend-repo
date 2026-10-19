@@ -125,12 +125,11 @@ export default function App() {
           <span className="brand__name">In Check</span>
         </div>
         <p className="top__date">{headingDate(today)}</p>
-        <div className="streak" aria-label={`Streak ${run.current} days, best ${run.best}`}>
+        <div className={run.current > 0 ? 'streak streak--alive' : 'streak'} aria-label={`Streak ${run.current} days, best ${run.best}`}>
+          <Flame />
           <span className="streak__count">{run.current}</span>
-          <span className="streak__label">
-            day streak
-            <span className="streak__best">best {run.best}</span>
-          </span>
+          <span className="streak__label">day streak</span>
+          <span className="streak__best">best {run.best}</span>
         </div>
       </header>
 
@@ -167,7 +166,7 @@ export default function App() {
             </div>
           </div>
 
-          <div className="bar-meter" aria-hidden="true">
+          <div className={entry.hours >= bar ? 'bar-meter bar-meter--reached' : 'bar-meter'} aria-hidden="true">
             <div className="bar-meter__fill" style={{ width: `${Math.min(100, (100 * entry.hours) / MAX_HOURS)}%` }} />
             <div className="bar-meter__dsa" style={{ width: `${Math.min(100, (100 * entry.dsa) / MAX_HOURS)}%` }} />
             <div className="bar-meter__bar" style={{ left: `${(100 * bar) / MAX_HOURS}%` }} />
@@ -193,7 +192,7 @@ export default function App() {
 
         <aside className="side">
           <section className="card card--verdict" aria-labelledby="verdict-title">
-            <h2 id="verdict-title" className="card__title">
+            <h2 id="verdict-title" className={said.ok ? 'card__title card__title--done' : 'card__title'}>
               {said.headline}
             </h2>
             <ul className="verdict">
@@ -234,7 +233,7 @@ export default function App() {
             Last fourteen days
           </h2>
           <p className="legend" aria-hidden="true">
-            <span className="legend__swatch legend__swatch--hours" /> hours <span className="legend__swatch legend__swatch--dsa" /> DSA <span className="legend__dot" /> gym <span className="legend__line" /> the bar, {bar} h
+            <span className="legend__swatch legend__swatch--hours" /> hours <span className="legend__swatch legend__swatch--dsa" /> DSA <span className="legend__swatch legend__swatch--counted" /> counted <span className="legend__dot" /> gym <span className="legend__line" /> the bar, {bar} h
           </p>
         </div>
         <Bars days={store.days} bar={bar} today={today} />
@@ -247,7 +246,7 @@ export default function App() {
           </h2>
           <p className="legend" aria-hidden="true">
             less
-            {[0, 1, 2, 3, 4, 5].map((l) => (
+            {[0, 1, 2, 3, 4].map((l) => (
               <span key={l} className={`legend__cell heatmap__cell--${l}`} />
             ))}
             the bar
@@ -300,6 +299,16 @@ export default function App() {
 
       <footer className="foot">Two goals. Count the work, not the hours.</footer>
     </main>
+  )
+}
+
+/** The streak's flame: lit in green while the streak is alive. */
+function Flame() {
+  return (
+    <svg className="flame" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M12 2c.5 3.3 2.3 5.2 4.2 7.2C18 11.1 19 13 19 15.1A7 7 0 0 1 5 15.1c0-1.7.5-3.1 1.5-4.3.3 1.5 1.2 2.4 2.4 2.8-.4-2.9.2-5.3 2-7.1C11.8 5.6 12 3.9 12 2z" />
+      <path className="flame__core" d="M12 11c.4 1.7 1.4 2.6 2.3 3.6.7.8 1.2 1.6 1.2 2.6a3.5 3.5 0 0 1-7 0c0-.8.3-1.5.8-2.1.2.7.7 1.2 1.3 1.4-.2-1.5.1-2.7 1-3.7.3-.5.4-1.2.4-1.8z" />
+    </svg>
   )
 }
 
