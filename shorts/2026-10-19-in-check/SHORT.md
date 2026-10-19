@@ -15,7 +15,7 @@
 - **Credits:**
   - Everyday and GitHub for the year as a grid of cells; Streaks for the one number with a visible reset; Habitify and Daylio for the note on each day.
   - Type set in Geist and Geist Mono (Vercel, SIL Open Font License).
-- **Live:**
+- **Live:** [in-check-ten.vercel.app](https://in-check-ten.vercel.app)
 
 ## What this piece adds
 
