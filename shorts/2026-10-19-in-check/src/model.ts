@@ -34,11 +34,22 @@ export interface Settings {
   dayStart: number
 }
 
+/** The desk timer: one stretch runs at a time; Pause banks it. Its total is the day's hours. */
+export interface Timer {
+  /** The day the timer counts for. */
+  day: string
+  /** Milliseconds banked by the stretches already paused. */
+  banked: number
+  /** When the running stretch started (ms since the epoch), or null while paused. */
+  startedAt: number | null
+}
+
 export interface Store {
   version: typeof SCHEMA_VERSION
   settings: Settings
   days: Record<string, DayEntry>
   systems: SystemSlot[]
+  timer?: Timer
 }
 
 export const EMPTY_DAY: DayEntry = { gym: false, hours: 0, dsa: 0, problems: 0, systems: false, product: false, note: '' }
@@ -158,6 +169,45 @@ export function summary(days: Record<string, DayEntry>, bar: number, today: stri
     if (counts(days[key], bar)) out.monthAtBar++
   }
   return out
+}
+
+// ---- The desk timer ----
+
+const HOUR_MS = 3_600_000
+
+/** Time on the clock: what is banked, plus the running stretch. */
+export function timerElapsed(timer: Timer | undefined, now: number): number {
+  if (!timer) return 0
+  return timer.banked + (timer.startedAt === null ? 0 : Math.max(0, now - timer.startedAt))
+}
+
+/** Starts a stretch. A timer left from another day starts over for today. */
+export function startTimer(timer: Timer | undefined, now: number, today: string): Timer {
+  const fresh = !timer || timer.day !== today
+  return { day: today, banked: fresh ? 0 : timer.banked, startedAt: now }
+}
+
+/** Banks the running stretch. A paused timer is returned as it is. */
+export function pauseTimer(timer: Timer, now: number): Timer {
+  return { ...timer, banked: timerElapsed(timer, now), startedAt: null }
+}
+
+/** Hours for a day entry, to the hundredth, never past a day. */
+export function hoursOf(ms: number): number {
+  return Math.min(MAX_HOURS, Math.round(ms / (HOUR_MS / 100)) / 100)
+}
+
+export function msOf(hours: number): number {
+  return Math.round(hours * HOUR_MS)
+}
+
+/** h:mm:ss. */
+export function formatClock(ms: number): string {
+  const total = Math.floor(ms / 1000)
+  const h = Math.floor(total / 3600)
+  const m = Math.floor((total % 3600) / 60)
+  const s = total % 60
+  return `${h}:${pad(m)}:${pad(s)}`
 }
 
 // ---- The verdict ----
@@ -285,7 +335,7 @@ export function normalizeStore(input: unknown): Store {
     const status = s.status === 'building' || s.status === 'shipped' || s.status === 'planned' ? s.status : slot.status
     return { name: typeof s.name === 'string' ? s.name.slice(0, 80) : systems[i] ? '' : slot.name, status }
   })
-  return {
+  const store: Store = {
     version: SCHEMA_VERSION,
     settings: {
       bar: clampNumber(settings.bar, 1, MAX_HOURS, DEFAULT_SETTINGS.bar),
@@ -294,6 +344,16 @@ export function normalizeStore(input: unknown): Store {
     days,
     systems: slots,
   }
+  if (raw.timer !== undefined && raw.timer !== null) {
+    const t = raw.timer as Record<string, unknown>
+    if (typeof t !== 'object' || !isKey(t.day)) throw new Error('Not a tracker file: the timer has no day.')
+    store.timer = {
+      day: t.day,
+      banked: clampNumber(t.banked, 0, MAX_HOURS * HOUR_MS, 0),
+      startedAt: typeof t.startedAt === 'number' && Number.isFinite(t.startedAt) && t.startedAt > 0 ? t.startedAt : null,
+    }
+  }
+  return store
 }
 
 export function serialize(store: Store): string {

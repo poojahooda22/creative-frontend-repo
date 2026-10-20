@@ -3,16 +3,22 @@ import { Bars, Heatmap } from './charts'
 import {
   dayKey,
   EMPTY_DAY,
+  formatClock,
   formatHours,
+  hoursOf,
   loadStore,
   MAX_HOURS,
+  msOf,
   normalizeStore,
   parseKey,
+  pauseTimer,
   serialize,
   shiftKey,
+  startTimer,
   STORAGE_KEY,
   streaks,
   summary,
+  timerElapsed,
   verdict,
   type DayEntry,
   type Store,
@@ -79,6 +85,66 @@ export default function App() {
   const run = streaks(store.days, bar, today)
   const sums = summary(store.days, bar, today)
   const said = verdict(entry, yesterday, bar)
+
+  // ---- The desk timer ----
+  const timer = store.timer
+  const running = timer !== undefined && timer.startedAt !== null
+  const [clock, setClock] = useState(() => Date.now())
+  const [resetAsk, setResetAsk] = useState(false)
+  // A second hand while it runs. The time itself is read from the clock, so a tab the browser
+  // slows down, or a page closed and opened again, loses nothing.
+  useEffect(() => {
+    if (!running) return
+    setClock(Date.now())
+    const id = window.setInterval(() => setClock(Date.now()), 1000)
+    return () => window.clearInterval(id)
+  }, [running])
+  const elapsed = timerElapsed(timer, clock)
+  const timerHours = hoursOf(elapsed)
+  const timerDay = timer?.day
+  // The timer is the day's hours: written whenever its hundredth of an hour changes.
+  useEffect(() => {
+    if (!running || !timerDay) return
+    setStore((s) => {
+      const current = s.days[timerDay] ?? EMPTY_DAY
+      if (current.hours === timerHours) return s
+      return { ...s, days: { ...s.days, [timerDay]: { ...current, hours: timerHours, dsa: Math.min(current.dsa, timerHours) } } }
+    })
+  }, [running, timerDay, timerHours])
+  const clockLabel = formatClock(elapsed)
+  useEffect(() => {
+    document.title = running ? `${clockLabel.slice(0, -3)} · In Check` : 'In Check'
+  }, [running, clockLabel])
+
+  const startDesk = () => {
+    setResetAsk(false)
+    setStore((s) => ({ ...s, timer: startTimer(s.timer, Date.now(), today) }))
+  }
+  const pauseDesk = () =>
+    setStore((s) => {
+      if (!s.timer) return s
+      const paused = pauseTimer(s.timer, Date.now())
+      const current = s.days[paused.day] ?? EMPTY_DAY
+      const hours = hoursOf(paused.banked)
+      return { ...s, timer: paused, days: { ...s.days, [paused.day]: { ...current, hours, dsa: Math.min(current.dsa, hours) } } }
+    })
+  const resetDesk = () => {
+    setResetAsk(false)
+    setStore((s) => {
+      const target = s.timer?.day ?? today
+      const current = s.days[target] ?? EMPTY_DAY
+      return { ...s, timer: { day: today, banked: 0, startedAt: null }, days: { ...s.days, [target]: { ...current, hours: 0, dsa: 0 } } }
+    })
+  }
+  // Hours typed in by hand on the timer's day set the timer too, so the two never disagree.
+  const timerOwnsDay = timer !== undefined && timer.day === day
+  const setHours = (hours: number) =>
+    setStore((s) => {
+      const current = s.days[day] ?? EMPTY_DAY
+      const next = { ...current, hours, dsa: Math.min(current.dsa, hours) }
+      const t = s.timer && s.timer.day === day && s.timer.startedAt === null ? { ...s.timer, banked: msOf(hours) } : s.timer
+      return { ...s, timer: t, days: { ...s.days, [day]: next } }
+    })
 
   const setEntry = (patch: Partial<DayEntry>) =>
     setStore((s) => {
@@ -174,7 +240,18 @@ export default function App() {
 
           <div className="fields">
             <Toggle id="gym" label="Gym" hint="Goal one. Every day." checked={entry.gym} onChange={(gym) => setEntry({ gym })} />
-            <Stepper id="hours" label="Hours worked" hint={`The bar is ${bar} h.`} value={entry.hours} min={0} max={MAX_HOURS} step={0.5} unit="h" onChange={(hours) => setEntry({ hours })} />
+            <Stepper
+              id="hours"
+              label="Hours worked"
+              hint={running && timerOwnsDay ? 'Counting on the desk timer.' : `The bar is ${bar} h.`}
+              value={entry.hours}
+              min={0}
+              max={MAX_HOURS}
+              step={0.5}
+              unit="h"
+              disabled={running && timerOwnsDay}
+              onChange={setHours}
+            />
             <Stepper id="dsa" label="DSA hours" hint="Inside the hours. The most important part." value={entry.dsa} min={0} max={entry.hours} step={0.5} unit="h" onChange={(dsa) => setEntry({ dsa })} />
             <Stepper id="problems" label="Problems solved" hint="Brute force, better, optimal. Count the ones taken to optimal." value={entry.problems} min={0} max={1000} step={1} onChange={(problems) => setEntry({ problems })} />
             <Toggle id="systems" label="Built on a system" hint="The course-selling app, or one of the five." checked={entry.systems} onChange={(systems) => setEntry({ systems })} />
@@ -190,7 +267,61 @@ export default function App() {
           </div>
         </section>
 
-        <aside className="side">
+        <section className={running ? 'card card--timer card--timer-running' : 'card card--timer'} aria-labelledby="timer-title">
+          <div className="card__head">
+            <h2 id="timer-title" className="card__title card__title--small">
+              At the desk
+            </h2>
+            <p className="timer__state">
+              {running && <span className="timer__dot" aria-hidden="true" />}
+              {running ? 'Running' : timer && timer.banked > 0 && timer.day === today ? 'Paused' : 'Not started'}
+            </p>
+          </div>
+          <p className="timer__clock">
+            <output aria-live="off" aria-label={`${clockLabel} at the desk`}>
+              {clockLabel}
+            </output>
+          </p>
+          <p className="timer__sub">
+            {running && timer.startedAt !== null
+              ? `This stretch ${formatClock(clock - timer.startedAt)} · ${formatHours(Math.max(0, bar - timerHours))} to the bar`
+              : timer && timer.day === today && timer.banked > 0
+                ? `${formatHours(Math.max(0, bar - timerHours))} to the bar`
+                : 'Start when you sit down. Pause for the gym and the rest.'}
+          </p>
+          <div className="actions">
+            {running ? (
+              <button type="button" className="btn" onClick={pauseDesk}>
+                Pause
+              </button>
+            ) : (
+              <button type="button" className="btn" onClick={startDesk}>
+                {timer && timer.day === today && timer.banked > 0 ? 'Resume' : 'Start'}
+              </button>
+            )}
+            {resetAsk ? (
+              <>
+                <span className="timer__ask">Reset today's hours to 0?</span>
+                <button type="button" className="btn btn--ghost btn--small" onClick={resetDesk}>
+                  Reset
+                </button>
+                <button type="button" className="btn btn--ghost btn--small" onClick={() => setResetAsk(false)}>
+                  Keep
+                </button>
+              </>
+            ) : (
+              timer !== undefined &&
+              !running &&
+              timer.banked > 0 && (
+                <button type="button" className="btn btn--ghost btn--small" onClick={() => setResetAsk(true)}>
+                  Reset
+                </button>
+              )
+            )}
+          </div>
+          <p className="card__foot">Only desk time counts. What it counts is the day's hours worked.</p>
+        </section>
+
           <section className="card card--verdict" aria-labelledby="verdict-title">
             <h2 id="verdict-title" className={said.ok ? 'card__title card__title--done' : 'card__title'}>
               {said.headline}
@@ -210,7 +341,7 @@ export default function App() {
             )}
           </section>
 
-          <section className="card" aria-labelledby="week-title">
+          <section className="card card--week" aria-labelledby="week-title">
             <h2 id="week-title" className="card__title card__title--small">
               Last seven days
             </h2>
@@ -224,7 +355,6 @@ export default function App() {
               This month: {sums.monthAtBar} of {sums.monthDays} logged {sums.monthDays === 1 ? 'day' : 'days'} counted.
             </p>
           </section>
-        </aside>
       </div>
 
       <section className="card" aria-labelledby="bars-title">
@@ -364,11 +494,13 @@ interface StepperProps {
   step: number
   /** Shown after the number: h, or :00 for an hour of the day. */
   unit?: string
+  /** Read-only for now (the desk timer owns the value). */
+  disabled?: boolean
   onChange(value: number): void
 }
 
 /** A number with a button either side; the number itself can be typed into. */
-function Stepper({ id, label, hint, value, min, max, step, unit, onChange }: StepperProps) {
+function Stepper({ id, label, hint, value, min, max, step, unit, disabled = false, onChange }: StepperProps) {
   const clamp = (n: number) => Math.min(max, Math.max(min, Math.round(n / step) * step))
   return (
     <div className="field field--row">
@@ -379,7 +511,7 @@ function Stepper({ id, label, hint, value, min, max, step, unit, onChange }: Ste
         <p className="field__hint">{hint}</p>
       </div>
       <div className="stepper">
-        <button type="button" className="btn btn--icon" onClick={() => onChange(clamp(value - step))} disabled={value <= min} aria-label={`Less ${label.toLowerCase()}`}>
+        <button type="button" className="btn btn--icon" onClick={() => onChange(clamp(value - step))} disabled={disabled || value <= min} aria-label={`Less ${label.toLowerCase()}`}>
           <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
             <path d="M2.5 6h7" />
           </svg>
@@ -394,6 +526,7 @@ function Stepper({ id, label, hint, value, min, max, step, unit, onChange }: Ste
             max={max}
             step={step}
             value={value}
+            disabled={disabled}
             onChange={(e) => {
               const n = Number(e.target.value)
               if (Number.isFinite(n)) onChange(clamp(n))
@@ -405,7 +538,7 @@ function Stepper({ id, label, hint, value, min, max, step, unit, onChange }: Ste
             </span>
           )}
         </span>
-        <button type="button" className="btn btn--icon" onClick={() => onChange(clamp(value + step))} disabled={value >= max} aria-label={`More ${label.toLowerCase()}`}>
+        <button type="button" className="btn btn--icon" onClick={() => onChange(clamp(value + step))} disabled={disabled || value >= max} aria-label={`More ${label.toLowerCase()}`}>
           <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false">
             <path d="M2.5 6h7M6 2.5v7" />
           </svg>

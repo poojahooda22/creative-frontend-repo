@@ -207,16 +207,33 @@ body {
 }
 
 /* ---- Cards ---- */
+/* Today on the left, the whole height; the timer, the verdict and the week stacked on the right. */
 .columns {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  grid-template-areas:
+    'today timer'
+    'today verdict'
+    'today week'
+    'today .';
   gap: 16px;
   align-items: start;
 }
 
-.side {
-  display: grid;
-  gap: 16px;
+.card--today {
+  grid-area: today;
+}
+
+.card--timer {
+  grid-area: timer;
+}
+
+.card--verdict {
+  grid-area: verdict;
+}
+
+.card--week {
+  grid-area: week;
 }
 
 .card {
@@ -486,7 +503,8 @@ body {
 }
 
 .stepper__input {
-  width: 3.5ch;
+  /* Room for the timer's hundredths: 22.75. */
+  width: 5ch;
   min-height: 40px;
   padding: 0;
   border: 1px solid transparent;
@@ -502,6 +520,12 @@ body {
 .stepper__input:focus {
   border-color: var(--line);
   background: var(--raised);
+}
+
+.stepper__input:disabled {
+  color: var(--fg);
+  border-color: transparent;
+  background: transparent;
 }
 
 .stepper__unit {
@@ -579,6 +603,53 @@ body {
 
 .bar-meter--reached .bar-meter__bar {
   background: var(--on-done);
+}
+
+/* ---- The desk timer ---- */
+.timer__state {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.timer__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--done);
+}
+
+.timer__clock {
+  margin: 0;
+  font: 600 44px/1 var(--mono);
+  letter-spacing: -0.02em;
+  color: var(--fg-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.card--timer-running .timer__clock {
+  color: var(--done);
+}
+
+.timer__sub {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.timer__ask {
+  align-self: center;
+  font-size: 14px;
+  color: var(--fg);
+}
+
+.card--timer .actions {
+  align-items: center;
 }
 
 /* ---- Verdict ---- */
@@ -910,8 +981,18 @@ body {
 
 /* ---- Phones ---- */
 @media (max-width: 900px) {
+  /* One column: the timer first, since the day starts by starting it. */
   .columns {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'timer'
+      'today'
+      'verdict'
+      'week';
+  }
+
+  .timer__clock {
+    font-size: 40px;
   }
 
   .top {
